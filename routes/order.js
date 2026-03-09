@@ -1,31 +1,4 @@
 
-// const express = require('express');
-// const router = express.Router();
-// const Order = require('../models/Order'); // Import the Product model
-// const mongoose = require('mongoose');
-
-// // POST endpoint to create a new product
-// router.post('/createOrder', async (req, res) => {
-//     const { title, quantity, price, size } = req.body;
-
-//     try {
-//         const newOrder = new Order({
-//             title,
-//             quantity,
-//             price,
-//             size,
-//         });
-
-//         await newOrder.save();
-//         res.status(201).json({ message: "Order created successfully", order: newOrder });
-//     } catch (error) {
-//         console.error('Error during product creation:', error);
-//         return res.status(500).json({ message: 'Server error' });
-//     }
-// });
-
-
-// module.exports = router;
 
 
 

@@ -63,7 +63,10 @@ router.get('/dashboard', authMiddleware, (req, res) => {
 
 
 router.post('/signup', async (req, res) => {
-    const { email,username, password } = req.body;
+    //   console.log('Request body:', req.body);
+    const { email,username,password } = req.body;
+
+    //  console.log('Request body:', req.body); // Debug log
 
     try {
         // Check if user already exists

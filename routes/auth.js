@@ -11,9 +11,9 @@ const JWT_SECRET = 'nanhesargotil'; // Change this to a secure key
 
 // Login route
 router.post('/login', async (req, res) => {
-    // console.log("hitting");
+
     const { email, password } = req.body;
-    // console.log('Request body:', req.body);
+    
 
     try {
         const user = await User.findOne({ email: email });
@@ -62,37 +62,70 @@ router.get('/dashboard', authMiddleware, (req, res) => {
 
 
 
-router.post('/signup', async (req, res) => {
-    //   console.log('Request body:', req.body);
-    const { email,username,password } = req.body;
 
-    //  console.log('Request body:', req.body); // Debug log
+router.post('/signup', async (req, res) => {
+    const { email, username, password } = req.body;
+
+    console.log('Request body:', req.body); // Debug log
 
     try {
-        // Check if user already exists
-        const existingUser  = await User.findOne({ email });
-        if (existingUser ) {
-            return res.status(400).json({ message: 'User  already exists' });
+        // Input validation
+        if (!email || !username || !password) {
+            return res.status(400).json({ message: 'Email, username, and password are required' });
+        }
+
+        // Check if user already exists by email OR username
+        const existingUser = await User.findOne({ 
+            $or: [{ email }, { username }] 
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ 
+                message: `User already exists with ${existingUser.email === email ? 'email' : 'username'}` 
+            });
         }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create a new user with default role as 'user'
-        const newUser  = new User({
-            email,
-            username,
+        // Create and save new user
+        const newUser = new User({
+            email: email.toLowerCase().trim(), // Normalize email
+            username: username.trim(),
             password: hashedPassword,
-            role: 'user', // Default role
+            role: 'user'
         });
 
-        // Save the user to the database
-        await newUser .save();
+        await newUser.save();
 
-      
-        res.status(201).json({ message: "User  registered successfully" });
+        // Don't return password or sensitive data
+        const { password: _, ...userWithoutPassword } = newUser.toObject();
+        
+        res.status(201).json({ 
+            message: "User registered successfully",
+            user: userWithoutPassword 
+        });
+
     } catch (error) {
-        console.error('Error during signup:', error);
+        console.error('Signup error:', error); // Better error logging
+
+        // Handle specific MongoDB duplicate key errors
+        if (error.code === 11000) {
+            return res.status(400).json({ 
+                message: 'Email or username already exists' 
+            });
+        }
+
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ 
+                message: 'Validation error', 
+                errors 
+            });
+        }
+
+        // Generic server error
         return res.status(500).json({ message: 'Server error' });
     }
 });

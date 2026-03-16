@@ -44,21 +44,42 @@ router.get('/getAllOrders', async (req, res) => {
 // Get Order by ID
 router.get('/getOrderById/:id', async (req, res) => {
     const { id } = req.params;
-
+    console.log("hitting",id);
 
 
     try {
+     
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ 
+                message: 'Invalid order ID format' 
+            });
+        }
+   
         const orderId = new mongoose.Types.ObjectId(id);
+        
+    
         const order = await Order.findById(orderId);
+     
+        
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
         res.status(200).json(order);
+        
     } catch (error) {
         console.error('Error fetching order:', error);
+        
+        
+        if (error.name === 'CastError') {
+            return res.status(400).json({ message: 'Invalid order ID' });
+        }
+        
         return res.status(500).json({ message: 'Server error' });
     }
 });
+
+
+
 
 // Update Order
 router.put('/updateOrderById/:id', async (req, res) => {
